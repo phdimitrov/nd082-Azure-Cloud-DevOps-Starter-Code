@@ -1,0 +1,11 @@
+{
+    "if": {
+        "allOf": [{
+            "field": "tags",
+            "exists": false
+        }]
+    },
+    "then": {
+        "effect": "deny"
+    }
+}
