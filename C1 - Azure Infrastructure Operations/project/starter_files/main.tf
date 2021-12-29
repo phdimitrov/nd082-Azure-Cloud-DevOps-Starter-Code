@@ -67,35 +67,6 @@ resource "azurerm_lb" "main" {
     }
 }
 
-# resource "azurerm_lb_backend_address_pool" "main" {
-#     name            = "${var.prefix}-be-addr-pool"
-#     loadbalancer_id = azurerm_lb.main.id
-    
-#     tags = {
-#         "infra" = "be-addr-pool"
-#     }
-# }
-
-# resource "azurerm_network_interface_backend_address_pool_association" "main" {
-#     network_interface_id    = azurerm_network_interface.main.id
-#     ip_configuration_name   = "${var.prefix}-nic-ip"
-#     backend_address_pool_id = azurerm_lb_backend_address_pool.main.id
-    
-#     tags = {
-#         "infra" = "nic-be-addr-pool-association"
-#     }
-# }
-
-# resource "azurerm_availability_set" "main" {
-#     name                = "${var.prefix}-availability-set"
-#     location            = azurerm_resource_group.main.location
-#     resource_group_name = azurerm_resource_group.main.name
-
-#     tags = {
-#         "infra" = "availability-set"
-#     }
-# }
-
 resource "azurerm_linux_virtual_machine" "main" {
     name                            = "${var.prefix}-vm"
     resource_group_name             = azurerm_resource_group.main.name
