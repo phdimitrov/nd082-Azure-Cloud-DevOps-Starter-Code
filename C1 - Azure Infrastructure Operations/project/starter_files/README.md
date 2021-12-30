@@ -85,7 +85,9 @@ Example output from packer build
 ![](./docs/Screenshot2.png)
 
 Example output from terraform apply
-![](./docs/Screenshot3.png)
+![](./docs/Screenshot3.1.png)
+and after updating with 2 vms
+![](./docs/Screenshot3.2.png)
 
 Screencap of tags policy
 ![](./docs/Screenshot4.png)

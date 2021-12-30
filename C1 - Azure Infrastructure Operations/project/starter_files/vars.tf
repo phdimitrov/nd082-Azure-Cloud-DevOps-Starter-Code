@@ -10,7 +10,13 @@ variable "location"{
 
 variable "vm_count" {
   description = "Count of virtual machines to create"
-  default = 1
+  default = 2
+}
+
+variable "image_name" {
+  description = "Image name created by packer"
+  default = "UdacityProject1Image"
+  sensitive = true
 }
 
 variable "username" {

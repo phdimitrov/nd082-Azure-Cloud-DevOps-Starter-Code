@@ -26,7 +26,8 @@ resource "azurerm_subnet" "internal" {
 }
 
 resource "azurerm_network_interface" "main" {
-    name                = "${var.prefix}-nic"
+    count               = var.vm_count
+    name                = "${var.prefix}-nic-${count.index}"
     resource_group_name = azurerm_resource_group.main.name
     location            = azurerm_resource_group.main.location
 
@@ -67,27 +68,59 @@ resource "azurerm_lb" "main" {
     }
 }
 
+resource "azurerm_network_security_group" "webserver" {
+    name                = "${var.prefix}-nsg"
+    location            = azurerm_resource_group.main.location
+    resource_group_name = azurerm_resource_group.main.name
+    
+    security_rule {
+        access                     = "Allow"
+        direction                  = "Inbound"
+        name                       = "tls"
+        priority                   = 100
+        protocol                   = "Tcp"
+        source_port_range          = "*"
+        source_address_prefix      = "*"
+        destination_port_range     = "443"
+        destination_address_prefix = azurerm_subnet.internal.address_prefixes[0]
+    }
+
+    tags = {
+        "infra" = "nsg"
+    }
+}
+
+data "azurerm_image" "main" {
+    name                = "${var.image_name}"
+    resource_group_name = azurerm_resource_group.main.name
+}
+
+resource "azurerm_availability_set" "main" {
+    name                = "${var.prefix}-availability-set"
+    location            = azurerm_resource_group.main.location
+    resource_group_name = azurerm_resource_group.main.name
+
+    tags = {
+        "infra" = "availability-set"
+    }
+}
+
 resource "azurerm_linux_virtual_machine" "main" {
-    name                            = "${var.prefix}-vm"
+    count                           = var.vm_count
+    name                            = "${var.prefix}-vm-${count.index}"
     resource_group_name             = azurerm_resource_group.main.name
     location                        = azurerm_resource_group.main.location
     size                            = "Standard_B1ls"
-    count                           = "${var.vm_count}"
-
+    availability_set_id             = azurerm_availability_set.main.id
+    
     admin_username                  = "${var.username}"
     admin_password                  = "${var.password}"
     disable_password_authentication = false
+    source_image_id                 = data.azurerm_image.main.id
     network_interface_ids = [
-        azurerm_network_interface.main.id,
+        azurerm_network_interface.main[count.index].id,
     ]
-
-    source_image_reference {
-        publisher = "Canonical"
-        offer     = "UbuntuServer"
-        sku       = "18.04-LTS"
-        version   = "latest"
-    }
-
+    
     os_disk {
         storage_account_type = "Standard_LRS"
         caching              = "ReadWrite"
@@ -96,4 +129,10 @@ resource "azurerm_linux_virtual_machine" "main" {
     tags = {
         "infra" = "virtual_machine"
     }
+
+    depends_on = [
+        azurerm_network_interface.main,
+        azurerm_availability_set.main,
+        azurerm_lb.main,
+    ]
 }
